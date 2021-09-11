@@ -52,25 +52,26 @@ public class BlockStack {
 
     private Stack<Block> getHighestStacks(List<Block> blockList, List<Stack<Block>> stackList, int[] dp, int j) {
         Stack<Block> highestStacks = new Stack<>();
-        highestStacks.add(blockList.get(j));
-        dp[j] = blockList.get(j).getHeight();
+        Block currentBlock = blockList.get(j);
+        highestStacks.add(currentBlock);
+        dp[j] = currentBlock.getHeight();
 
         for (int i = 0; i < j; ++i) {
-            if (blockList.get(i).canStackOnAnotherBlock(blockList.get(j))) {
-                if(dp[i] + blockList.get(j).getHeight() >= dp[j] ) {
-                    highestStacks = newHighStacks(blockList, stackList, j, i);
-                    dp[j] = dp[i] + blockList.get(j).getHeight();
+            if (blockList.get(i).canStackOnAnotherBlock(currentBlock)) {
+                if(dp[i] + currentBlock.getHeight() >= dp[j] ) {
+                    highestStacks = newHighStacks(currentBlock, stackList.get(i));
+                    dp[j] = dp[i] + currentBlock.getHeight();
                 }
             }
         }
         return highestStacks;
     }
 
-    private Stack<Block> newHighStacks(List<Block> blockList, List<Stack<Block>> stackList, int j, int i) {
-        Stack<Block> blockStack = new Stack<>();
-        blockStack.add(blockList.get(j));
-        blockStack.addAll(stackList.get(i));
-        return blockStack;
+    private Stack<Block> newHighStacks(Block block, Stack<Block> blockStack) {
+        Stack<Block> newBlockStack = new Stack<>();
+        newBlockStack.add(block);
+        newBlockStack.addAll(blockStack);
+        return newBlockStack;
     }
 
     public void printAllStacks(List<Stack<Block>> blockStacks) {
