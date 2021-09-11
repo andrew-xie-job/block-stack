@@ -3,8 +3,10 @@ package com.andrew.solution;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 import static com.andrew.solution.Block.createBlock;
+import static java.util.stream.Collectors.toList;
 
 public class BlockStack {
 
@@ -13,7 +15,7 @@ public class BlockStack {
         Collections.sort(blockList);
 
         int maxHeight = 0;
-        int dp[] = new int[blockList.size()];
+        int[] dp = new int[blockList.size()];
 
         for (int j = 0; j < blockList.size(); ++j) {
             int currentHeight = blockList.get(j).getHeight();
@@ -36,11 +38,66 @@ public class BlockStack {
         return blockList;
     }
 
+    //Add block stacks tracing to visualize solution
+    public List<Stack<Block>> findAllStacks(int[][] blocks) {
+        List<Block> blockList = initializeBlocks(blocks);
+        Collections.sort(blockList);
+
+        List<Stack<Block>> stackList = new ArrayList<>();
+        int[] dp = new int[blockList.size()];
+        for (int j = 0; j < blockList.size(); ++j)
+            stackList.add(getHighestStacks(blockList, stackList, dp, j));
+        return stackList;
+    }
+
+    private Stack<Block> getHighestStacks(List<Block> blockList, List<Stack<Block>> stackList, int[] dp, int j) {
+        Stack<Block> highestStacks = new Stack<>();
+        highestStacks.add(blockList.get(j));
+        dp[j] = blockList.get(j).getHeight();
+
+        for (int i = 0; i < j; ++i) {
+            if (blockList.get(i).canStackOnAnotherBlock(blockList.get(j))) {
+                if(dp[i] + blockList.get(j).getHeight() >= dp[j] ) {
+                    highestStacks = newHighStacks(blockList, stackList, j, i);
+                    dp[j] = dp[i] + blockList.get(j).getHeight();
+                }
+            }
+        }
+        return highestStacks;
+    }
+
+    private Stack<Block> newHighStacks(List<Block> blockList, List<Stack<Block>> stackList, int j, int i) {
+        Stack<Block> blockStack = new Stack<>();
+        blockStack.add(blockList.get(j));
+        blockStack.addAll(stackList.get(i));
+        return blockStack;
+    }
+
+    public void printAllStacks(List<Stack<Block>> blockStacks) {
+        for (Stack<Block> stack : blockStacks) {
+            for (Block block : stack) {
+                System.out.print("{" + block.getWidth() + "," + block.getLength() + "," + block.getHeight() + "}" + "-->");
+            }
+            System.out.println();
+        }
+    }
+
+    public Integer findMaxHeightFromAllStacks(List<Stack<Block>> blockStacks) {
+        return blockStacks.stream()
+                .map(s->s.stream().mapToInt(Block::getHeight).sum())
+                .collect(toList()).stream()
+                .mapToInt(v -> v).max().orElse(0);
+    }
+
     public static void main(String... args) {
-        int[][] input = {{50,45,20},{95,37,53},{45,23,12}};
+        int[][] input = {{5,30,55},{5,88,100},{74,7,80},{7,52,61},{62,41,37},{91,58,26},{72,93,23},{56,58,94},{88,8,64}};
         BlockStack max = new BlockStack();
         int result = max.findMaxHeight(input);
         System.out.println(result);
+
+        List<Stack<Block>> stacks = max.findAllStacks(input);
+        System.out.println(max.findMaxHeightFromAllStacks(stacks));
+        max.printAllStacks(stacks);
     }
 
 }
